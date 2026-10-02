@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Roleta de Sorteio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* CSS para o triângulo apontador */
+    .pointer {
+      width: 0; 
+      height: 0; 
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-top: 30px solid #ef4444; /* red-500 */
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+    }
+    body {
+      background-color: #f3f4f6; /* gray-100 */
+      color: #1f2937; /* gray-800 */
+    }
+    .card-bg {
+      background-color: #ffffff;
+      border-color: #e5e7eb;
+    }
+  </style>
+</head>
+<body class="antialiased p-5 h-screen flex flex-col items-center justify-center min-h-[600px]">
+  
+  <div class="card-bg border rounded-xl p-6 shadow-xl w-full max-w-2xl flex flex-col md:flex-row gap-8">
+    
+    <!-- Configurações -->
+    <div class="flex-1 flex flex-col gap-4">
+      <h2 class="font-bold text-2xl mb-2 text-blue-600">Configurar Roleta</h2>
+      
+      <div class="flex flex-col gap-1">
+        <label for="options" class="text-sm font-semibold text-gray-700">Entradas (uma por linha):</label>
+        <textarea id="options" rows="6" class="p-2 border border-gray-300 rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" placeholder="João&#10;Maria&#10;Pedro&#10;Ana">João
+Maria
+Pedro
+Ana</textarea>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="rigged-result" class="text-sm font-semibold text-gray-700">Resultado Desejado (Opcional):</label>
+        <input type="text" id="rigged-result" class="p-2 border border-gray-300 rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: Pedro">
+        <p class="text-xs text-gray-500">Se deixado em branco ou não bater com nenhuma entrada, o sorteio será aleatório.</p>
+      </div>
+
+      <button id="spin-btn" class="mt-4 bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 hover:shadow-lg transition-all">
+        GIRAR ROLETA
+      </button>
+    </div>
+
+    <!-- Roleta Visual -->
+    <div class="flex-1 flex flex-col items-center justify-center relative">
+      <div class="relative">
+        <div class="pointer"></div>
+        <canvas id="wheel" width="300" height="300" class="rounded-full shadow-2xl border-4 border-gray-200"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Resultado -->
+  <div id="result-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-white p-8 rounded-2xl shadow-2xl transform scale-90 transition-transform duration-300 w-80 text-center border border-gray-200">
+      <h3 class="text-2xl font-bold mb-4 text-gray-800">🎉 Resultado 🎉</h3>
+      <p id="winner-text" class="text-3xl font-extrabold text-blue-600 mb-6">NOME</p>
+      <button id="close-modal" class="bg-gray-800 text-white font-semibold py-2 px-6 rounded-full hover:bg-gray-700 transition-colors">
+        Fechar
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const optionsTextarea = document.getElementById('options');
+    const riggedInput = document.getElementById('rigged-result');
+    const spinBtn = document.getElementById('spin-btn');
+    const resultModal = document.getElementById('result-modal');
+    const winnerText = document.getElementById('winner-text');
+    const closeModalBtn = document.getElementById('close-modal');
+
+    let currentRotation = 0; // in radians
+    let isSpinning = false;
+    let items = [];
+    
+    // Paleta de cores para as fatias
+    const colors = [
+      '#f87171', '#fb923c', '#fbbf24', '#a3e635', '#34d399', 
+      '#2dd4bf', '#38bdf8', '#818cf8', '#a78bfa', '#e879f9', '#f43f5e'
+    ];
+
+    function updateItems() {
+      const text = optionsTextarea.value;
+      items = text.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+      if (items.length === 0) items = ['Vazio'];
+      drawWheel();
+    }
+
+    function drawWheel() {
+      const numSlices = items.length;
+      const sliceAngle = (2 * Math.PI) / numSlices;
+      const radius = canvas.width / 2;
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < numSlices; i++) {
+        const startAngle = currentRotation + i * sliceAngle;
+        const endAngle = startAngle + sliceAngle;
+
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fill();
+        ctx.stroke();
+
+        // Draw text
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(startAngle + sliceAngle / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 18px sans-serif";
+        ctx.shadowColor = "rgba(0,0,0,0.4)";
+        ctx.shadowBlur = 4;
+        ctx.fillText(items[i].length > 15 ? items[i].substring(0, 15) + '...' : items[i], radius - 20, 6);
+        ctx.restore();
+      }
+    }
+
+    function easeOutQuart(t) {
+      return 1 - (--t) * t * t * t;
+    }
+
+    function spin() {
+      if (isSpinning || items.length === 0) return;
+      isSpinning = true;
+
+      const riggedValue = riggedInput.value.trim();
+      let winnerIndex = -1;
+      
+      if (riggedValue) {
+        winnerIndex = items.findIndex(item => item.toLowerCase() === riggedValue.toLowerCase());
+      }
+      
+      if (winnerIndex === -1) {
+        winnerIndex = Math.floor(Math.random() * items.length);
+      }
+
+      const numSlices = items.length;
+      const sliceAngle = (2 * Math.PI) / numSlices;
+      
+      const randomOffset = (Math.random() * 0.6 - 0.3) * sliceAngle; 
+      
+      const targetAngle = (3 * Math.PI / 2) - (winnerIndex * sliceAngle) - (sliceAngle / 2) + randomOffset;
+      
+      const currentRotationMod = currentRotation % (2 * Math.PI);
+      let angleDiff = targetAngle - currentRotationMod;
+      
+      if (angleDiff < 0) {
+        angleDiff += 2 * Math.PI;
+      }
+      
+      const extraSpins = 6 * 2 * Math.PI;
+      const totalSpin = angleDiff + extraSpins;
+      
+      const startRotation = currentRotation;
+      const duration = 4000; 
+      let startTime = null;
+
+      function animateSpin(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+        let progress = elapsed / duration;
+        
+        if (progress > 1) progress = 1;
+        
+        const easingProgress = easeOutQuart(progress);
+        currentRotation = startRotation + totalSpin * easingProgress;
+        
+        drawWheel();
+
+        if (progress < 1) {
+          requestAnimationFrame(animateSpin);
+        } else {
+          isSpinning = false;
+          showWinner(items[winnerIndex]);
+        }
+      }
+
+      requestAnimationFrame(animateSpin);
+    }
+
+    function showWinner(winnerName) {
+      winnerText.textContent = winnerName;
+      resultModal.classList.remove('hidden');
+      void resultModal.offsetWidth;
+      resultModal.classList.remove('opacity-0');
+      resultModal.children[0].classList.remove('scale-90');
+      resultModal.children[0].classList.add('scale-100');
+    }
+
+    closeModalBtn.addEventListener('click', () => {
+      resultModal.classList.add('opacity-0');
+      resultModal.children[0].classList.add('scale-90');
+      resultModal.children[0].classList.remove('scale-100');
+      setTimeout(() => {
+        resultModal.classList.add('hidden');
+      }, 300);
+    });
+
+    optionsTextarea.addEventListener('input', updateItems);
+    spinBtn.addEventListener('click', spin);
+
+    updateItems();
+  </script>
+</body>
+</html>
