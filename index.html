@@ -2,78 +2,111 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Roleta de Sorteio</title>
+  <title>Roleta de Sorteio Interativa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* CSS para o triângulo apontador */
+    @keyframes pulse-pointer {
+      0%, 100% { transform: translateX(-50%) scale(1); }
+      50% { transform: translateX(-50%) scale(1.15); }
+    }
     .pointer {
-      width: 0; 
-      height: 0; 
-      border-left: 15px solid transparent;
-      border-right: 15px solid transparent;
-      border-top: 30px solid #ef4444; /* red-500 */
+      width: 0;
+      height: 0;
+      border-left: 16px solid transparent;
+      border-right: 16px solid transparent;
+      border-top: 32px solid #ef4444;
       position: absolute;
-      top: -10px;
+      top: -12px;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 10;
+      z-index: 20;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+      transition: transform 0.1s ease;
     }
-    body {
-      background-color: #f3f4f6; /* gray-100 */
-      color: #1f2937; /* gray-800 */
-    }
-    .card-bg {
-      background-color: #ffffff;
-      border-color: #e5e7eb;
+    .pointer.active {
+      animation: pulse-pointer 0.2s ease-in-out;
     }
   </style>
 </head>
-<body class="antialiased p-5 h-screen flex flex-col items-center justify-center min-h-[600px]">
+<body class="bg-slate-900 text-slate-100 antialiased p-3 sm:p-5 select-none min-h-screen flex items-center justify-center">
   
-  <div class="card-bg border rounded-xl p-6 shadow-xl w-full max-w-2xl flex flex-col md:flex-row gap-8">
+  <div class="bg-slate-800 border border-slate-700 rounded-3xl p-6 shadow-2xl w-full max-w-4xl mx-auto flex flex-col md:flex-row gap-8 items-center">
     
-    <!-- Configurações -->
-    <div class="flex-1 flex flex-col gap-4">
-      <h2 class="font-bold text-2xl mb-2 text-blue-600">Configurar Roleta</h2>
+    <!-- Painel de Controles -->
+    <div class="w-full md:w-1/2 flex flex-col gap-4">
+      <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+        <h1 class="font-extrabold text-xl sm:text-2xl text-white flex items-center gap-2">
+          🎡 Roleta da Sorte
+        </h1>
+        <span class="text-xs px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/30">
+          ● Online
+        </span>
+      </div>
       
-      <div class="flex flex-col gap-1">
-        <label for="options" class="text-sm font-semibold text-gray-700">Entradas (uma por linha):</label>
-        <textarea id="options" rows="6" class="p-2 border border-gray-300 rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" placeholder="João&#10;Maria&#10;Pedro&#10;Ana">João
-Maria
-Pedro
-Ana</textarea>
+      <div class="flex flex-col gap-1.5">
+        <label for="options" class="text-xs font-semibold uppercase tracking-wider text-slate-400">
+          Opções do sorteio (1 por linha):
+        </label>
+        <textarea id="options" rows="4" class="p-3 text-sm border border-slate-700 rounded-xl bg-slate-900 text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-medium transition-all" placeholder="Item 1&#10;Item 2&#10;Item 3">Pizza 🍕
+Hambúrguer 🍔
+Sushi 🍣
+Churrasco 🥩
+Salada 🥗</textarea>
       </div>
 
-      <div class="flex flex-col gap-1">
-        <label for="rigged-result" class="text-sm font-semibold text-gray-700">Resultado Desejado (Opcional):</label>
-        <input type="text" id="rigged-result" class="p-2 border border-gray-300 rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: Pedro">
-        <p class="text-xs text-gray-500">Se deixado em branco ou não bater com nenhuma entrada, o sorteio será aleatório.</p>
+      <div class="flex flex-col gap-1.5">
+        <div class="flex justify-between items-center">
+          <label for="rigged-result" class="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            🎯 Resultado Forçado (Opcional):
+          </label>
+          <span class="text-[10px] text-amber-400 font-semibold bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">Modo Viciado</span>
+        </div>
+        <input type="text" id="rigged-result" class="p-3 text-sm border border-slate-700 rounded-xl bg-slate-900 text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all" placeholder="Ex: Pizza 🍕 (ou vazio para sorteio justo)">
       </div>
 
-      <button id="spin-btn" class="mt-4 bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 hover:shadow-lg transition-all">
-        GIRAR ROLETA
-      </button>
+      <div class="flex gap-2 items-center pt-2">
+        <button id="spin-btn" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-blue-500/25 active:scale-95 transition-all text-sm uppercase tracking-wider flex items-center justify-center gap-2">
+          <span>Girar Roleta</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        </button>
+        <button id="sound-toggle" class="p-3.5 border border-slate-700 rounded-xl bg-slate-900 hover:bg-slate-700 text-base transition-all" title="Alternar som">
+          🔊
+        </button>
+      </div>
     </div>
 
-    <!-- Roleta Visual -->
-    <div class="flex-1 flex flex-col items-center justify-center relative">
+    <!-- Visual da Roleta -->
+    <div class="w-full md:w-1/2 flex flex-col items-center justify-center relative py-4">
       <div class="relative">
-        <div class="pointer"></div>
-        <canvas id="wheel" width="300" height="300" class="rounded-full shadow-2xl border-4 border-gray-200"></canvas>
+        <div id="pointer" class="pointer"></div>
+        <canvas id="wheel" width="340" height="340" class="rounded-full shadow-2xl border-4 border-slate-700 bg-slate-950"></canvas>
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div class="w-12 h-12 rounded-full bg-slate-800 border-4 border-slate-700 shadow-xl flex items-center justify-center font-black text-sm">
+            ⭐
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal de Resultado -->
-  <div id="result-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-300">
-    <div class="bg-white p-8 rounded-2xl shadow-2xl transform scale-90 transition-transform duration-300 w-80 text-center border border-gray-200">
-      <h3 class="text-2xl font-bold mb-4 text-gray-800">🎉 Resultado 🎉</h3>
-      <p id="winner-text" class="text-3xl font-extrabold text-blue-600 mb-6">NOME</p>
-      <button id="close-modal" class="bg-gray-800 text-white font-semibold py-2 px-6 rounded-full hover:bg-gray-700 transition-colors">
-        Fechar
+  <!-- Modal / Banner de Vencedor -->
+  <div id="result-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-300 p-4">
+    <div class="bg-slate-800 border border-slate-700 p-6 sm:p-8 rounded-3xl shadow-2xl transform scale-90 transition-transform duration-300 w-full max-w-sm text-center relative overflow-hidden">
+      <div class="absolute -top-12 -left-12 w-28 h-28 bg-blue-500/20 rounded-full blur-2xl"></div>
+      <div class="absolute -bottom-12 -right-12 w-28 h-28 bg-indigo-500/20 rounded-full blur-2xl"></div>
+      
+      <span class="text-4xl block mb-2">🎉</span>
+      <h3 class="text-xs uppercase tracking-widest font-bold text-slate-400 mb-1">Resultado do Sorteio</h3>
+      <p id="winner-text" class="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400 mb-6 py-1 break-words">Vencedor</p>
+      
+      <button id="close-modal" class="w-full bg-white text-slate-900 font-bold py-3.5 px-6 rounded-xl hover:bg-slate-200 active:scale-95 transition-all text-sm">
+        Continuar
       </button>
     </div>
   </div>
+
+  <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-40 hidden"></canvas>
 
   <script>
     const canvas = document.getElementById('wheel');
@@ -84,21 +117,84 @@ Ana</textarea>
     const resultModal = document.getElementById('result-modal');
     const winnerText = document.getElementById('winner-text');
     const closeModalBtn = document.getElementById('close-modal');
+    const pointer = document.getElementById('pointer');
+    const soundToggle = document.getElementById('sound-toggle');
+    const confettiCanvas = document.getElementById('confetti-canvas');
+    const confCtx = confettiCanvas.getContext('2d');
 
-    let currentRotation = 0; // in radians
+    let currentRotation = 0;
     let isSpinning = false;
     let items = [];
-    
-    // Paleta de cores para as fatias
+    let soundEnabled = true;
+
+    // Sintetizador de Áudio Nativo (Web Audio API)
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function getAudioCtx() {
+      if (!audioCtx) {
+        audioCtx = new AudioContext();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playTick() {
+      if (!soundEnabled) return;
+      try {
+        const actx = getAudioCtx();
+        const osc = actx.createOscillator();
+        const gain = actx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(450, actx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(120, actx.currentTime + 0.04);
+        gain.gain.setValueAtTime(0.18, actx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, actx.currentTime + 0.04);
+        osc.connect(gain);
+        gain.connect(actx.destination);
+        osc.start();
+        osc.stop(actx.currentTime + 0.04);
+      } catch(e) {}
+    }
+
+    function playFanfare() {
+      if (!soundEnabled) return;
+      try {
+        const actx = getAudioCtx();
+        const notes = [261.63, 329.63, 392.00, 523.25];
+        notes.forEach((freq, idx) => {
+          setTimeout(() => {
+            const osc = actx.createOscillator();
+            const gain = actx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, actx.currentTime);
+            gain.gain.setValueAtTime(0.2, actx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.35);
+            osc.connect(gain);
+            gain.connect(actx.destination);
+            osc.start();
+            osc.stop(actx.currentTime + 0.35);
+          }, idx * 120);
+        });
+      } catch(e) {}
+    }
+
+    soundToggle.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      soundToggle.textContent = soundEnabled ? '🔊' : '🔇';
+    });
+
     const colors = [
-      '#f87171', '#fb923c', '#fbbf24', '#a3e635', '#34d399', 
-      '#2dd4bf', '#38bdf8', '#818cf8', '#a78bfa', '#e879f9', '#f43f5e'
+      '#EF4444', '#F97316', '#F59E0B', '#10B981', '#06B6D4',
+      '#3B82F6', '#6366F1', '#8B5CF6', '#EC4899', '#14B8A6'
     ];
 
     function updateItems() {
       const text = optionsTextarea.value;
       items = text.split('\n').map(s => s.trim()).filter(s => s.length > 0);
-      if (items.length === 0) items = ['Vazio'];
+      if (items.length === 0) items = ['Opção 1', 'Opção 2'];
       drawWheel();
     }
 
@@ -120,18 +216,20 @@ Ana</textarea>
         ctx.arc(centerX, centerY, radius, startAngle, endAngle);
         ctx.fillStyle = colors[i % colors.length];
         ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#ffffff20';
         ctx.stroke();
 
-        // Draw text
         ctx.save();
         ctx.translate(centerX, centerY);
         ctx.rotate(startAngle + sliceAngle / 2);
-        ctx.textAlign = "right";
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 18px sans-serif";
-        ctx.shadowColor = "rgba(0,0,0,0.4)";
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px sans-serif';
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
         ctx.shadowBlur = 4;
-        ctx.fillText(items[i].length > 15 ? items[i].substring(0, 15) + '...' : items[i], radius - 20, 6);
+        const label = items[i].length > 14 ? items[i].substring(0, 14) + '...' : items[i];
+        ctx.fillText(label, radius - 24, 5);
         ctx.restore();
       }
     }
@@ -140,72 +238,132 @@ Ana</textarea>
       return 1 - (--t) * t * t * t;
     }
 
+    let lastTickIndex = -1;
+
     function spin() {
       if (isSpinning || items.length === 0) return;
       isSpinning = true;
+      getAudioCtx();
 
-      const riggedValue = riggedInput.value.trim();
+      const riggedValue = riggedInput.value.trim().toLowerCase();
       let winnerIndex = -1;
-      
+
       if (riggedValue) {
-        winnerIndex = items.findIndex(item => item.toLowerCase() === riggedValue.toLowerCase());
+        winnerIndex = items.findIndex(item => item.toLowerCase() === riggedValue);
       }
-      
+
       if (winnerIndex === -1) {
         winnerIndex = Math.floor(Math.random() * items.length);
       }
 
       const numSlices = items.length;
       const sliceAngle = (2 * Math.PI) / numSlices;
-      
-      const randomOffset = (Math.random() * 0.6 - 0.3) * sliceAngle; 
-      
+      const randomOffset = (Math.random() * 0.6 - 0.3) * sliceAngle;
       const targetAngle = (3 * Math.PI / 2) - (winnerIndex * sliceAngle) - (sliceAngle / 2) + randomOffset;
-      
+
       const currentRotationMod = currentRotation % (2 * Math.PI);
       let angleDiff = targetAngle - currentRotationMod;
-      
       if (angleDiff < 0) {
         angleDiff += 2 * Math.PI;
       }
-      
+
       const extraSpins = 6 * 2 * Math.PI;
       const totalSpin = angleDiff + extraSpins;
-      
       const startRotation = currentRotation;
-      const duration = 4000; 
+      const duration = 4500;
       let startTime = null;
 
-      function animateSpin(timestamp) {
+      function animate(timestamp) {
         if (!startTime) startTime = timestamp;
         const elapsed = timestamp - startTime;
         let progress = elapsed / duration;
-        
         if (progress > 1) progress = 1;
-        
-        const easingProgress = easeOutQuart(progress);
-        currentRotation = startRotation + totalSpin * easingProgress;
-        
+
+        const easing = easeOutQuart(progress);
+        currentRotation = startRotation + totalSpin * easing;
+
+        const topSliceIndex = Math.floor((( (3 * Math.PI / 2) - (currentRotation % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)) / sliceAngle);
+        if (topSliceIndex !== lastTickIndex) {
+          lastTickIndex = topSliceIndex;
+          playTick();
+          pointer.classList.remove('active');
+          void pointer.offsetWidth;
+          pointer.classList.add('active');
+        }
+
         drawWheel();
 
         if (progress < 1) {
-          requestAnimationFrame(animateSpin);
+          requestAnimationFrame(animate);
         } else {
           isSpinning = false;
           showWinner(items[winnerIndex]);
         }
       }
 
-      requestAnimationFrame(animateSpin);
+      requestAnimationFrame(animate);
     }
 
-    function showWinner(winnerName) {
-      winnerText.textContent = winnerName;
+    let confettiParticles = [];
+    let confettiTimer = null;
+
+    function launchConfetti() {
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+      confettiCanvas.classList.remove('hidden');
+
+      confettiParticles = Array.from({ length: 90 }, () => ({
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2,
+        vx: (Math.random() - 0.5) * 16,
+        vy: (Math.random() - 0.7) * 16,
+        size: Math.random() * 8 + 4,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rotation: Math.random() * 360,
+        vr: (Math.random() - 0.5) * 10,
+        alpha: 1
+      }));
+
+      function renderConfetti() {
+        confCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        let alive = false;
+        confettiParticles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.4;
+          p.rotation += p.vr;
+          p.alpha -= 0.012;
+          if (p.alpha > 0) {
+            alive = true;
+            confCtx.save();
+            confCtx.globalAlpha = p.alpha;
+            confCtx.translate(p.x, p.y);
+            confCtx.rotate((p.rotation * Math.PI) / 180);
+            confCtx.fillStyle = p.color;
+            confCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+            confCtx.restore();
+          }
+        });
+
+        if (alive) {
+          confettiTimer = requestAnimationFrame(renderConfetti);
+        } else {
+          confettiCanvas.classList.add('hidden');
+        }
+      }
+      cancelAnimationFrame(confettiTimer);
+      renderConfetti();
+    }
+
+    function showWinner(name) {
+      winnerText.textContent = name;
       resultModal.classList.remove('hidden');
       void resultModal.offsetWidth;
       resultModal.classList.remove('opacity-0');
       resultModal.children[0].classList.remove('scale-90');
       resultModal.children[0].classList.add('scale-100');
+      playFanfare();
+      launchConfetti();
     }
 
     closeModalBtn.addEventListener('click', () => {
